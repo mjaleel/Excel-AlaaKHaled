@@ -325,10 +325,14 @@ if fdf is not None and not fdf.empty:
         if selected_col and selected_values:
             if st.button("📑  بناء (ورقة لكل قيمة)", use_container_width=True):
                 with st.spinner("جارٍ بناء الأوراق..."):
-                    multi_bytes = export_multi_sheets(fdf, selected_col, selected_values)
+                    st.session_state["multi_bytes"] = export_multi_sheets(
+                        fdf, selected_col, selected_values
+                    )
+
+            if st.session_state.get("multi_bytes"):
                 st.download_button(
                     label="⬇️  تحميل الملف متعدد الأوراق",
-                    data=multi_bytes,
+                    data=st.session_state["multi_bytes"],
                     file_name="sheets_result.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     use_container_width=True,
