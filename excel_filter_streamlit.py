@@ -141,7 +141,6 @@ def export_multi_sheets(df: pd.DataFrame, col: str, keywords: list) -> bytes:
     fill, font, align = build_header_style()
     df_cols = list(df.columns)
 
-    progress = st.progress(0, text="جارٍ البناء...")
     total = len(keywords)
 
     for idx, kw in enumerate(keywords, 1):
@@ -157,10 +156,6 @@ def export_multi_sheets(df: pd.DataFrame, col: str, keywords: list) -> bytes:
         for ri, (_, row) in enumerate(subset.iterrows(), 2):
             for ci, val in enumerate(row, 1):
                 ws.cell(row=ri, column=ci, value=val)
-
-        progress.progress(idx / total, text=f"({idx}/{total})  {kw}")
-
-    progress.empty()
     buf = BytesIO()
     wb.save(buf)
     return buf.getvalue()
@@ -333,18 +328,11 @@ if fdf is not None and not fdf.empty:
     with col_b:
         _col    = st.session_state.saved_col
         _values = st.session_state.saved_values
-
-        if st.button("📑  بناء (ورقة لكل قيمة)", use_container_width=True):
-            if _col and _values:
-                with st.spinner("جارٍ بناء الأوراق..."):
-                    st.session_state.multi_bytes = export_multi_sheets(
-                        fdf, _col, _values
-                    )
-
-        if st.session_state.multi_bytes:
+        if _col and _values:
+            multi_bytes = export_multi_sheets(fdf, _col, _values)
             st.download_button(
-                label="⬇️  تحميل الملف متعدد الأوراق",
-                data=st.session_state.multi_bytes,
+                label="📑  تصدير (ورقة لكل قيمة)",
+                data=multi_bytes,
                 file_name="sheets_result.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 use_container_width=True,
@@ -363,3 +351,4 @@ else:
         <div style="font-size:1.2rem; margin-top:12px;">ارفع ملف Excel من الشريط الجانبي للبدء</div>
     </div>
     """, unsafe_allow_html=True)
+ 
