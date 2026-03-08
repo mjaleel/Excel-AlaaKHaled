@@ -171,6 +171,12 @@ if "df" not in st.session_state:
     st.session_state.df = None
 if "filtered_df" not in st.session_state:
     st.session_state.filtered_df = None
+if "multi_bytes" not in st.session_state:
+    st.session_state.multi_bytes = None
+if "saved_col" not in st.session_state:
+    st.session_state.saved_col = None
+if "saved_values" not in st.session_state:
+    st.session_state.saved_values = []
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -255,6 +261,9 @@ with st.sidebar:
         else:
             mask = st.session_state.df[selected_col].isin(selected_values)
             st.session_state.filtered_df = st.session_state.df[mask].copy()
+            st.session_state.saved_col    = selected_col
+            st.session_state.saved_values = selected_values
+            st.session_state.multi_bytes  = None
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -322,22 +331,25 @@ if fdf is not None and not fdf.empty:
         )
 
     with col_b:
-        if selected_col and selected_values:
-            if st.button("📑  بناء (ورقة لكل قيمة)", use_container_width=True):
+        _col    = st.session_state.saved_col
+        _values = st.session_state.saved_values
+
+        if st.button("📑  بناء (ورقة لكل قيمة)", use_container_width=True):
+            if _col and _values:
                 with st.spinner("جارٍ بناء الأوراق..."):
-                    st.session_state["multi_bytes"] = export_multi_sheets(
-                        fdf, selected_col, selected_values
+                    st.session_state.multi_bytes = export_multi_sheets(
+                        fdf, _col, _values
                     )
 
-            if st.session_state.get("multi_bytes"):
-                st.download_button(
-                    label="⬇️  تحميل الملف متعدد الأوراق",
-                    data=st.session_state["multi_bytes"],
-                    file_name="sheets_result.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    use_container_width=True,
-                    key="dl_multi",
-                )
+        if st.session_state.multi_bytes:
+            st.download_button(
+                label="⬇️  تحميل الملف متعدد الأوراق",
+                data=st.session_state.multi_bytes,
+                file_name="sheets_result.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                use_container_width=True,
+                key="dl_multi",
+            )
 
 elif df is not None:
     st.info("اختر القيم من الشريط الجانبي ثم اضغط **تصفية الصفوف**")
